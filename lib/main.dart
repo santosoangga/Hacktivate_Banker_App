@@ -1,12 +1,34 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:h8_fli_geo_maps_starter/firebase_options.dart';
 import 'package:h8_fli_geo_maps_starter/manager/geo_bloc.dart';
 import 'package:h8_fli_geo_maps_starter/manager/history_bloc.dart';
 import 'package:h8_fli_geo_maps_starter/service/geo_service.dart';
 import 'package:h8_fli_geo_maps_starter/view/geo_view.dart';
+import 'package:h8_fli_geo_maps_starter/view/home_view.dart';
+import 'package:h8_fli_geo_maps_starter/view/login_view.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-void main() {
+final locator = GetIt.instance;
+
+void initDependencyInjection() {
+  locator.registerLazySingleton<GeoService>(() => GeoService());
+  locator.registerFactory<GeoBloc>(
+    () => GeoBloc(service: locator<GeoService>()),
+  );
+  locator.registerFactory<HistoryBloc>(
+    () => HistoryBloc(geoService: locator<GeoService>()),
+  );
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  initDependencyInjection();
+
   runApp(const MyApp());
 }
 
@@ -18,24 +40,16 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late final GeoService _geoService;
-  late final GeoBloc _geoBloc;
-  late final HistoryBloc _historyBloc;
-
-  @override
-  void initState() {
-    _geoService = GeoService();
-    _geoBloc = GeoBloc(service: _geoService);
-    _historyBloc = HistoryBloc(geoService: _geoService);
-    super.initState();
-  }
+  // late final GeoService _geoService;
+  // late final GeoBloc _geoBloc;
+  // late final HistoryBloc _historyBloc;
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => _geoBloc),
-        BlocProvider(create: (context) => _historyBloc),
+        BlocProvider(create: (context) => locator<GeoBloc>()),
+        BlocProvider(create: (context) => locator<HistoryBloc>()),
       ],
       child: ShadApp.custom(
         themeMode: ThemeMode.dark,
@@ -48,7 +62,12 @@ class _MyAppState extends State<MyApp> {
             title: 'Geo Hands-On',
             theme: Theme.of(context),
             debugShowCheckedModeBanner: false,
-            home: GeoView(),
+            initialRoute: '/',
+            routes: {
+              '/': (context) => const LoginView(),
+              '/home': (context) => const HomeView(),
+              '/geo': (context) => const GeoView(),
+            },
           );
         },
       ),
