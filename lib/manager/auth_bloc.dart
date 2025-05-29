@@ -16,7 +16,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         userPassword: event.userPassword,
       );
       if (isAuthenticated) {
-        emit(AuthSuccess());
+        emit(AuthSuccess(userId: event.userId));
       } else {
         emit(AuthFailure());
       }

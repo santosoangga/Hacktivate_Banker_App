@@ -16,6 +16,8 @@ import 'package:h8_fli_geo_maps_starter/manager/auth_bloc.dart';
 import 'package:h8_fli_geo_maps_starter/domain/usecases/firebase_usecase.dart';
 import 'package:h8_fli_geo_maps_starter/data/repositories/firebase_repository_implementation.dart';
 import 'package:h8_fli_geo_maps_starter/data/datasources/firebase_data_source.dart';
+import 'package:h8_fli_geo_maps_starter/service/nfc_service.dart';
+import 'package:h8_fli_geo_maps_starter/manager/nfc_bloc.dart';
 
 final locator = GetIt.instance;
 
@@ -38,6 +40,12 @@ void initDependencyInjection() {
   );
   locator.registerFactory<AuthBloc>(
     () => AuthBloc(checkAuthStatusUseCase: locator<CheckAuthStatusUseCase>()),
+  );
+
+  // NFC dependencies
+  locator.registerLazySingleton<NfcService>(() => NfcService());
+  locator.registerFactory<NfcBloc>(
+    () => NfcBloc(locator<NfcService>()),
   );
 }
 
@@ -66,6 +74,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (context) => locator<GeoBloc>()),
         BlocProvider(create: (context) => locator<HistoryBloc>()),
         BlocProvider(create: (context) => locator<AuthBloc>()),
+        BlocProvider(create: (context) => locator<NfcBloc>()),
       ],
       child: ShadApp.custom(
         themeMode: ThemeMode.dark,
@@ -82,7 +91,7 @@ class _MyAppState extends State<MyApp> {
             routes: {
               '/': (context) => const LoginView(),
               '/home-staff': (context) => const HomeViewStaff(),
-              '/home-manager': (context) => const HomeViewManager(),
+              '/home-manager': (context) => HomeViewManager(),
               '/geo': (context) => const GeoView(),
             },
           );

@@ -6,13 +6,23 @@ import '../manager/auth_bloc.dart';
 class ManagerLoginCard extends StatefulWidget {
   const ManagerLoginCard({super.key});
 
+  static void clearControllers() {
+    _ManagerLoginCardState.clearControllers();
+  }
+
   @override
   State<ManagerLoginCard> createState() => _ManagerLoginCardState();
 }
 
 class _ManagerLoginCardState extends State<ManagerLoginCard> {
+  static TextEditingController? _staticManagerAccessCodeController;
+
   final managerAccessCodeController = TextEditingController();
   bool isVerifyButtonEnabled = false;
+
+  static void clearControllers() {
+    _staticManagerAccessCodeController?.clear();
+  }
 
   void _verifyButtonState() {
     setState(() {
@@ -31,12 +41,14 @@ class _ManagerLoginCardState extends State<ManagerLoginCard> {
   @override
   void initState() {
     managerAccessCodeController.addListener(_verifyButtonState);
+    _staticManagerAccessCodeController = managerAccessCodeController;
     super.initState();
   }
 
   @override
   void dispose() {
     managerAccessCodeController.dispose();
+    _staticManagerAccessCodeController = null;
     super.dispose();
   }
 
