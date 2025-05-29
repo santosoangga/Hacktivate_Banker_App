@@ -1,7 +1,10 @@
 import 'package:firebase_database/firebase_database.dart';
 
-class RemoteDataSource{
-  Future<bool> checkAuthStatus({required String userId, required String userPassword}) async {
+class FirebaseDataSource {
+  Future<bool> checkAuthStatus({
+    required String userId,
+    required String userPassword,
+  }) async {
     try {
       final snapshot =
           await FirebaseDatabase.instance
@@ -16,8 +19,7 @@ class RemoteDataSource{
       } else {
         return false;
       }
-    }
-    catch (e) {
+    } catch (e) {
       return false;
     }
   }

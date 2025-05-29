@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:h8_fli_geo_maps_starter/components/login_card_staff.dart';
+import 'package:h8_fli_geo_maps_starter/components/login_card_manager.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import '../manager/auth_bloc.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -9,105 +14,55 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  String _activeTab = 'staff';
 
-  final userIdController = TextEditingController();
-  final userPasswordController = TextEditingController();
-  bool _isButtonEnabled = false;
-
-  void _updateButtonState() {
+  void _onTabChanged(String value) {
     setState(() {
-      _isButtonEnabled = userIdController.text.isNotEmpty && userPasswordController.text.isNotEmpty;
+      _activeTab = value;
     });
   }
 
   @override
-  void initState() {
-    userIdController.addListener(_updateButtonState);
-    userPasswordController.addListener(_updateButtonState);
-    super.initState();
-  }
-
-  @override
-  dispose() {
-    userIdController.dispose();
-    userPasswordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Container(
-          padding: EdgeInsets.all(20),
-          child: ShadTabs<String>(
-            value: 'staff',
-            tabBarConstraints: const BoxConstraints(maxWidth: 400),
-            contentConstraints: const BoxConstraints(maxWidth: 400),
-            tabs: [
-              ShadTab(
-                value: 'staff',
-                content: ShadCard(
-                  title: const Text('Access Code'),
-                  description: const Text("Input your Staff Id & access code here."),
-                  footer: ShadButton(
-                    enabled: _isButtonEnabled,
-                    child: Text('Verify'),
-                    onPressed: () {
-                      final userId = userIdController.text;
-                      final userPassword = userPasswordController.text;
-
-                      Navigator.pushNamed(context, '/home');
-                    },
+    return BlocProvider(
+      create: (context) => GetIt.instance<AuthBloc>(),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthSuccess) {
+            if (_activeTab == 'staff') {
+              Navigator.pushNamed(context, '/home-staff');
+            } else if (_activeTab == 'manager') {
+              Navigator.pushNamed(context, '/home-manager');
+            }
+          } else if (state is AuthFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Invalid credentials')),
+            );
+          }
+        },
+        child: Scaffold(
+          body: Center(
+            child: Container(
+              padding: EdgeInsets.all(20),
+              child: ShadTabs<String>(
+                value: _activeTab,
+                onChanged: _onTabChanged,
+                tabBarConstraints: const BoxConstraints(maxWidth: 400),
+                contentConstraints: const BoxConstraints(maxWidth: 400),
+                tabs: [
+                  ShadTab(
+                    value: 'staff',
+                    content: StaffLoginCard(),
+                    child: const Text('Staff'),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                          "Staff Code: macan-gunung",
-                          style: TextStyle(fontSize: 10, color: Colors.green, ),
-                        ),
-                      const SizedBox(height: 16),
-                      ShadInputFormField(
-                        label: Text("Staff Code"),
-                        leading: Text("ST-"),
-                        controller: userIdController,
-                      ),
-                      const SizedBox(height: 8),
-                      ShadInputFormField(
-                        label: Text("Access Code"),
-                        obscureText: true,
-                        controller: userPasswordController,
-                      ),
-                    ],
+                  ShadTab(
+                    value: 'manager',
+                    content: ManagerLoginCard(),
+                    child: const Text('Manager'),
                   ),
-                ),
-                child: const Text('Staff'),
+                ],
               ),
-              ShadTab(
-                value: 'manager',
-                content: ShadCard(
-                  title: const Text('Access Code'),
-                  description: const Text(
-                    "Input your Manager access code here.",
-                  ),
-                  footer: ShadButton(
-                    child: Text('Verify'),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/home');
-                    },
-                  ),
-                  child: ShadInputFormField(
-                    obscureText: true,
-                    description: Text(
-                      "Manager Code: kuda-poni",
-                      style: TextStyle(fontSize: 10, color: Colors.green),
-                    ),
-                  ),
-                ),
-                child: const Text('Manager'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
